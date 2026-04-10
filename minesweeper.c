@@ -7,6 +7,10 @@
 #include <time.h>
 #include <signal.h>
 
+#define GAMEOVER 1
+#define WIN 2
+#define OK 0
+
 static uint8_t HEIGHT = 9;
 static uint8_t WIDTH = 9;
 
@@ -41,6 +45,73 @@ void set_color(field f, cursor c, uint8_t x, uint8_t y){
     }
 
     printf("\033[38;5;%um\033[48;5;%um", fg, bg);
+}
+
+// recursively go through all fields that have 0 mines
+// and are next to eachother
+void select_field(field** gameboard, int8_t x, int8_t y){
+    int8_t i, j;
+
+    if(gameboard[x][y].n_mines != 0){
+        return;
+    }
+
+    //these for loops are stupid
+    for(i = x - 1; i <= x + 1; i++){
+        if(i < 0 || i >= HEIGHT){
+            continue;
+        }
+        for(j = y - 1; j <= y + 1; j++){
+            if(j < 0 || j >= WIDTH || (j == y && i == x) || 
+                    gameboard[i][j].is_selected){
+                continue;
+            }
+
+            if((i == x - 1 && j == y - 1) || (i == x + 1 && j == y + 1) ||
+                    (i == x + 1 && j == y - 1) || (i == x - 1 && j == y + 1)){
+                if(gameboard[i][j].n_mines > 0){
+                    gameboard[i][j].is_selected = true;
+                }
+            }else{
+                gameboard[i][j].is_selected = true;
+                select_field(gameboard, i, j);
+            }
+
+        }
+    }
+
+}
+
+
+uint8_t run_game_logic(field** gameboard){
+    uint8_t i, j;
+    uint8_t code = OK;
+
+    uint8_t to_be_selected = 0;
+    uint8_t selected = 0;
+
+    for(i = 0; i < HEIGHT; i++){
+        for(j = 0; j < WIDTH; j++){
+            if(gameboard[i][j].n_mines > 0 && gameboard[i][j].n_mines < 9){
+                to_be_selected++;
+            }
+            if(!gameboard[i][j].is_selected){
+                continue;
+            }
+            if(gameboard[i][j].n_mines == 9){
+                return GAMEOVER;
+            }
+            if(gameboard[i][j].n_mines > 0){
+                selected++;
+            }
+        }
+    }
+
+    if(selected >= to_be_selected){
+        code = WIN;
+    }
+
+    return code;
 }
 
 // counts the number of mines around gameboard[x][y]
@@ -141,6 +212,8 @@ void print_gameboard(field** gameboard, cursor c){
         }
         printf("\n");
     }
+
+    printf("\033[2;0;0m"); // reset color
 }
 
 // set buffered input
@@ -184,9 +257,89 @@ int main(){
     game_cursor.x = 0;
     game_cursor.y = 0;
 
-    print_gameboard(gamebaord, game_cursor);
+    int8_t c = 0;
+    bool leave = false;
+    while(true){
+        
+        print_gameboard(gamebaord, game_cursor);
 
-    getchar();
+        printf("move:       wasd, hjkl or ← ↑ ↓ →\n");
+        printf("flag:       f or space\n");
+        printf("select:     enter\n");
+        printf("quit:       q\n");
+
+        c = getchar();
+
+        switch(c){
+            case 'd':
+                 if(game_cursor.y + 1 < WIDTH){
+                     game_cursor.y++;
+                 }
+            break;
+            case 'a':
+                if(game_cursor.y > 0){
+                    game_cursor.y--;
+                }
+            break;
+            case 'w':
+                 if(game_cursor.x > 0){
+                     game_cursor.x--;
+                 }
+            break;
+            case 's':
+                if(game_cursor.x + 1 < HEIGHT){
+                    game_cursor.x++;
+                }
+            break;
+            case 10: // return
+                if(gamebaord[game_cursor.x][game_cursor.y].is_flaged){
+                    break;
+                }
+                if(gamebaord[game_cursor.x][game_cursor.y].n_mines == 0 &&
+                        !gamebaord[game_cursor.x][game_cursor.y].is_selected){
+                    select_field(gamebaord, game_cursor.x, game_cursor.y);
+                }
+                gamebaord[game_cursor.x][game_cursor.y].is_selected = true;
+            break;
+            case 32:
+            case 'f':
+                if(gamebaord[game_cursor.x][game_cursor.y].is_flaged){
+                    gamebaord[game_cursor.x][game_cursor.y].is_flaged = false;
+                    break;
+                }
+                if(!gamebaord[game_cursor.x][game_cursor.y].is_selected){
+                    gamebaord[game_cursor.x][game_cursor.y].is_flaged = true;
+                }
+            break;
+            case 'q':
+                printf("QUIT? [y,n]");
+                c = getchar();
+                if(c == 'y'){
+                    leave = true;
+                }else{
+                    printf("\033[1E\033[1A%11s", " "); // write over QUIT? [y,n]
+                }
+            break;
+            default:
+            break;
+        }
+
+        if(leave){
+            break;
+        }
+
+        uint8_t code = run_game_logic(gamebaord);
+        if(code == GAMEOVER){
+            print_gameboard(gamebaord, game_cursor);
+            printf("GAME OVER\n");
+            break;
+        }
+        if(code == WIN){
+            print_gameboard(gamebaord, game_cursor);
+            printf("YOU WIN\n");
+            break;
+        }
+    }
     
     printf("\033[2;0;0m\n"); // reset color
     free_fields(gamebaord);
