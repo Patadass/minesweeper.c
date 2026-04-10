@@ -13,6 +13,8 @@
 
 static uint8_t HEIGHT = 9;
 static uint8_t WIDTH = 9;
+static uint8_t NUM_BOMBS = 10;
+static uint8_t FLAGGED = 0;
 
 typedef struct field{
     uint8_t n_mines;        // num of mines around filed ( if 9 then is bomb )
@@ -191,6 +193,10 @@ void free_fields(field** gameboard){
 void print_gameboard(field** gameboard, cursor c){
     uint8_t i, j;
     printf("\033[H"); // move cursor to 0, 0
+    
+    printf("minesweeper.c\n\n");
+
+    printf("bombs flagged: %u / %u%5s\n\n", FLAGGED, NUM_BOMBS,"");
 
     for(i = 0; i < HEIGHT; i++){
         for(j = 0; j < WIDTH; j++){
@@ -214,6 +220,11 @@ void print_gameboard(field** gameboard, cursor c){
     }
 
     printf("\033[2;0;0m"); // reset color
+
+    printf("\nmove:       wasd, hjkl or ← ↑ ↓ →\n");
+    printf("flag:       f or space\n");
+    printf("select:     enter\n");
+    printf("quit:       q\n");
 }
 
 // set buffered input
@@ -240,19 +251,19 @@ void set_buffered_input(bool enable){
 }
 
 void signal_callback_handler(int signum){
-    printf("\n");
+    printf("\033[?25h\n"); // make cursor visible
     set_buffered_input(true);
     exit(signum);
 }
 
 int main(){
 
-    printf("\033[2J"); // clear screen
+    printf("\033[?25l\033[2J"); // make cursor invisible and clear screen
 
     signal(SIGINT, signal_callback_handler);
     set_buffered_input(false);
 
-    field** gamebaord = init_fileds(10);
+    field** gamebaord = init_fileds(NUM_BOMBS);
     cursor game_cursor;
     game_cursor.x = 0;
     game_cursor.y = 0;
@@ -263,29 +274,33 @@ int main(){
         
         print_gameboard(gamebaord, game_cursor);
 
-        printf("move:       wasd, hjkl or ← ↑ ↓ →\n");
-        printf("flag:       f or space\n");
-        printf("select:     enter\n");
-        printf("quit:       q\n");
 
         c = getchar();
 
         switch(c){
+            case 67: // right arrow
+            case 'l':
             case 'd':
                  if(game_cursor.y + 1 < WIDTH){
                      game_cursor.y++;
                  }
             break;
+            case 68: // left arrow
+            case 'h':
             case 'a':
                 if(game_cursor.y > 0){
                     game_cursor.y--;
                 }
             break;
+            case 65: // up arrow
+            case 'k':
             case 'w':
                  if(game_cursor.x > 0){
                      game_cursor.x--;
                  }
             break;
+            case 66: // down arrow
+            case 'j':
             case 's':
                 if(game_cursor.x + 1 < HEIGHT){
                     game_cursor.x++;
@@ -305,10 +320,12 @@ int main(){
             case 'f':
                 if(gamebaord[game_cursor.x][game_cursor.y].is_flaged){
                     gamebaord[game_cursor.x][game_cursor.y].is_flaged = false;
+                    FLAGGED--;
                     break;
                 }
                 if(!gamebaord[game_cursor.x][game_cursor.y].is_selected){
                     gamebaord[game_cursor.x][game_cursor.y].is_flaged = true;
+                    FLAGGED++;
                 }
             break;
             case 'q':
@@ -341,7 +358,7 @@ int main(){
         }
     }
     
-    printf("\033[2;0;0m\n"); // reset color
+    printf("\033[?25h\033[2;0;0m\n"); // make cursor visible, reset color
     free_fields(gamebaord);
     set_buffered_input(true);
 
