@@ -157,7 +157,7 @@ field** init_fileds(uint16_t mines){
     uint16_t x, y;
 
     for(i = 0; i < HEIGHT; i++){
-        gameboard[i] = malloc(sizeof(field) * WIDTH);
+        gameboard[i] = calloc(WIDTH, sizeof(field));
     }
 
     srand(time(NULL));
@@ -254,6 +254,12 @@ void set_buffered_input(bool enable){
     }
 }
 
+void memtest(){
+    field** t = init_fileds(NUM_MINES);
+    free_fields(t);
+    return;
+}
+
 void signal_callback_handler(int signum){
     printf("\033[?25h\n"); // make cursor visible
     set_buffered_input(true);
@@ -274,6 +280,7 @@ int main(int argc, char** argv){
     int option_index = 0;
     struct option longopts[] = {
         {"help",    no_argument,       NULL,  0},
+        {"memtest", no_argument,       NULL,  0},
         {"easy",    no_argument,       NULL,  0},
         {"hard",    no_argument,       NULL,  0},
         {"expert",  no_argument,       NULL,  0},
@@ -290,6 +297,10 @@ int main(int argc, char** argv){
             case 0:
                 if(strcmp(longopts[option_index].name, "help") == 0){
                     print_help(EXIT_SUCCESS);
+                }
+                if(strcmp(longopts[option_index].name, "memtest") == 0){
+                    memtest();
+                    return 0;
                 }
                 if(strcmp(longopts[option_index].name, "easy") == 0){
                     HEIGHT = 9;
