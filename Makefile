@@ -1,5 +1,8 @@
 CFLAGS = -Wall
 
-.PHONY: all
+.PHONY: all memtest
 
 all: minesweeper
+
+memtest: minesweeper
+	valgrind ./minesweeper --memtest
