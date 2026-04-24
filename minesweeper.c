@@ -12,18 +12,18 @@
 #include <err.h>
 
 #define GAMEOVER 1
-#define WIN 2
-#define OK 0
+#define WIN      2
+#define OK       0
 
-static uint16_t HEIGHT = 9;
-static uint16_t WIDTH = 9;
+static uint16_t HEIGHT    = 9;
+static uint16_t WIDTH     = 9;
 static uint16_t NUM_MINES = 10;
-static uint16_t FLAGGED = 0;
+static uint16_t FLAGGED   = 0;
 
 typedef struct field{
     uint16_t n_mines;        // num of mines around filed ( if 9 then is bomb )
-    bool    is_selected;    // true if field has been selected     
-    bool    is_flaged;      // ture if field has been flaged
+    bool     is_selected;    // true if field has been selected
+    bool     is_flaged;      // ture if field has been flaged
 } field;
 
 typedef struct cursor{
@@ -37,7 +37,8 @@ typedef struct cursor{
 //if selected but not hoverd by cursor sets white bg and black fg
 //if selected and hoverd by cursor sets yellow bg and black fg
 void set_color(field f, cursor c, uint16_t x, uint16_t y){
-    uint16_t fg = 255, bg = 255;
+    uint16_t fg = 255;
+    uint16_t bg = 255;
 
     if(f.is_selected || f.is_flaged){
         fg = 0;
@@ -56,7 +57,8 @@ void set_color(field f, cursor c, uint16_t x, uint16_t y){
 // recursively go through all fields that have 0 mines
 // and are next to eachother
 void select_field(field** gameboard, int8_t x, int8_t y){
-    int8_t i, j;
+    int8_t i;
+    int8_t j;
 
     if(gameboard[x][y].n_mines != 0){
         return;
@@ -90,11 +92,12 @@ void select_field(field** gameboard, int8_t x, int8_t y){
 
 
 uint16_t run_game_logic(field** gameboard){
-    uint16_t i, j;
+    uint16_t i;
+    uint16_t j;
     uint16_t code = OK;
 
     uint16_t to_be_selected = 0;
-    uint16_t selected = 0;
+    uint16_t selected       = 0;
 
     for(i = 0; i < HEIGHT; i++){
         for(j = 0; j < WIDTH; j++){
@@ -233,8 +236,8 @@ void print_gameboard(field** gameboard, cursor c){
 
 // set buffered input
 void set_buffered_input(bool enable){
-    static bool enabled = true;
-    static struct termios old;
+    static bool    enabled = true;
+    static struct  termios old;
     struct termios new;
 
     if(enable && !enabled){
@@ -277,7 +280,8 @@ int main(int argc, char** argv){
 
     int o;
 
-    int option_index = 0;
+    int    option_index      = 0;
+    char*  optstring         = "w:h:m:";
     struct option longopts[] = {
         {"help",    no_argument,       NULL,  0},
         {"memtest", no_argument,       NULL,  0},
@@ -289,7 +293,6 @@ int main(int argc, char** argv){
         {"mines",   required_argument, NULL, 'm'},
         {0, 0, 0, 0}
     };
-    char* optstring = "w:h:m:";
 
     while((o = getopt_long(argc, argv, optstring, longopts, &option_index)) != -1){
         int ph;
@@ -303,18 +306,18 @@ int main(int argc, char** argv){
                     return 0;
                 }
                 if(strcmp(longopts[option_index].name, "easy") == 0){
-                    HEIGHT = 9;
-                    WIDTH = 9;
+                    HEIGHT    = 9;
+                    WIDTH     = 9;
                     NUM_MINES = 10;
                 }
                 if(strcmp(longopts[option_index].name, "hard") == 0){
-                    HEIGHT = 16;
-                    WIDTH = 16;
+                    HEIGHT    = 16;
+                    WIDTH     = 16;
                     NUM_MINES = 40;
                 }
                 if(strcmp(longopts[option_index].name, "expert") == 0){
-                    HEIGHT = 16;
-                    WIDTH = 30;
+                    HEIGHT    = 16;
+                    WIDTH     = 30;
                     NUM_MINES = 99;
                 }
                 break;
@@ -348,7 +351,9 @@ int main(int argc, char** argv){
         }
     }
 
-    int ch = HEIGHT, cw = WIDTH, cb = NUM_MINES;
+    int ch = HEIGHT;
+    int cw = WIDTH;
+    int cb = NUM_MINES;
 
     if(cb > ch * cw){
         printf("number of mines cant be more then the number of fields");
@@ -361,7 +366,8 @@ int main(int argc, char** argv){
     set_buffered_input(false);
 
     field** gamebaord = init_fileds(NUM_MINES);
-    cursor game_cursor;
+    cursor  game_cursor;
+
     game_cursor.x = 0;
     game_cursor.y = 0;
 
