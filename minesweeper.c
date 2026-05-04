@@ -23,7 +23,7 @@ static uint16_t FLAGGED   = 0;
 typedef struct field{
     uint16_t n_mines;        // num of mines around filed ( if 9 then is bomb )
     bool     is_selected;    // true if field has been selected
-    bool     is_flaged;      // ture if field has been flaged
+    bool     is_flagged;      // true if field has been flagged
 } field;
 
 typedef struct cursor{
@@ -31,16 +31,16 @@ typedef struct cursor{
     uint16_t y;
 } cursor;
 
-//sets color acording to given field, cursor and field postion
+//sets color according to given field, cursor and field position
 //if not selected or hovered by cursor sets white bg and white fg
 //if not selected but hovered by cursor set yellow bg and yellow fg
-//if selected but not hoverd by cursor sets white bg and black fg
-//if selected and hoverd by cursor sets yellow bg and black fg
+//if selected but not hovered by cursor sets white bg and black fg
+//if selected and hovered by cursor sets yellow bg and black fg
 void set_color(field f, cursor c, uint16_t x, uint16_t y){
     uint16_t fg = 255;
     uint16_t bg = 255;
 
-    if(f.is_selected || f.is_flaged){
+    if(f.is_selected || f.is_flagged){
         fg = 0;
     }
 
@@ -55,7 +55,7 @@ void set_color(field f, cursor c, uint16_t x, uint16_t y){
 }
 
 // recursively go through all fields that have 0 mines
-// and are next to eachother
+// and are next to each other
 void select_field(field** gameboard, int8_t x, int8_t y){
     int8_t i;
     int8_t j;
@@ -209,7 +209,7 @@ void print_gameboard(field** gameboard, cursor c){
         for(j = 0; j < WIDTH; j++){
             set_color(gameboard[i][j], c, i, j);
 
-            if(gameboard[i][j].is_flaged){
+            if(gameboard[i][j].is_flagged){
                 printf("F");
                 continue;
             }
@@ -409,7 +409,7 @@ int main(int argc, char** argv){
                 }
             break;
             case 10: // return
-                if(gamebaord[game_cursor.x][game_cursor.y].is_flaged){
+                if(gamebaord[game_cursor.x][game_cursor.y].is_flagged){
                     break;
                 }
                 if(gamebaord[game_cursor.x][game_cursor.y].n_mines == 0 &&
@@ -420,13 +420,13 @@ int main(int argc, char** argv){
             break;
             case 32:
             case 'f':
-                if(gamebaord[game_cursor.x][game_cursor.y].is_flaged){
-                    gamebaord[game_cursor.x][game_cursor.y].is_flaged = false;
+                if(gamebaord[game_cursor.x][game_cursor.y].is_flagged){
+                    gamebaord[game_cursor.x][game_cursor.y].is_flagged = false;
                     FLAGGED--;
                     break;
                 }
                 if(!gamebaord[game_cursor.x][game_cursor.y].is_selected){
-                    gamebaord[game_cursor.x][game_cursor.y].is_flaged = true;
+                    gamebaord[game_cursor.x][game_cursor.y].is_flagged = true;
                     FLAGGED++;
                 }
             break;
