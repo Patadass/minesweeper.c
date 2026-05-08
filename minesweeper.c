@@ -229,8 +229,8 @@ void print_gameboard(field** gameboard, cursor c){
     printf("\033[2;0;0m"); // reset color
 
     printf("\nmove:       wasd, hjkl or ← ↑ ↓ →\n");
-    printf("flag:       f or space\n");
-    printf("select:     enter\n");
+    printf("flag:       f\n");
+    printf("select:     enter or space\n");
     printf("quit:       q\n");
 }
 
@@ -408,6 +408,7 @@ int main(int argc, char** argv){
                     game_cursor.x++;
                 }
             break;
+            case 32: // space
             case 10: // return
                 if(gamebaord[game_cursor.x][game_cursor.y].is_flagged){
                     break;
@@ -418,7 +419,6 @@ int main(int argc, char** argv){
                 }
                 gamebaord[game_cursor.x][game_cursor.y].is_selected = true;
             break;
-            case 32:
             case 'f':
                 if(gamebaord[game_cursor.x][game_cursor.y].is_flagged){
                     gamebaord[game_cursor.x][game_cursor.y].is_flagged = false;
